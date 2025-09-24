@@ -1,0 +1,35 @@
+steps:
+  # Step 1: Use Maven to build the JAR (skipping tests)
+  - name: 'gcr.io/cloud-builders/mvn'
+    entrypoint: 'mvn'
+    args: ['clean', 'package', '-DskipTests']
+
+  # Step 2: Build Docker image using final JAR
+  - name: 'gcr.io/cloud-builders/docker'
+    args: [
+      'build',
+      '-t',
+      'asia-southeast1-docker.pkg.dev/$PROJECT_ID/github-connect-repo/user-api',
+      '.'
+    ]
+
+  # Step 3: Push Docker image to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/github-connect-repo/user-api']
+
+  # Step 4: Deploy to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+      [
+        'run', 'deploy', 'springboot-app',
+        '--image', 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/github-connect-repo/user-api',
+        '--region', 'asia-southeast1',
+        '--platform', 'managed',
+        '--allow-unauthenticated',
+        '--set-cloudsql-instances', 'springboot-demo-1:asia-southeast1:gcp-mysql',
+        '--update-env-vars', 'SPRING_PROFILES_ACTIVE=prod'
+      ]
+
+options:
+  logging: CLOUD_LOGGING_ONLY   # This avoids the log bucket error
