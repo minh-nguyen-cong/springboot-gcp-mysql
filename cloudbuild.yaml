@@ -22,7 +22,7 @@ steps:
     entrypoint: gcloud
     args:
       [
-        'run', 'deploy', 'springboot-app',
+        'run', 'deploy', 'user-api',
         '--image', 'asia-southeast1-docker.pkg.dev/$PROJECT_ID/github-connect-repo/user-api',
         '--region', 'asia-southeast1',
         '--platform', 'managed',
